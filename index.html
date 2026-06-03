@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Comic — Double Page (12) + BGM</title>
+  <style>
+    html,body{height:100%;margin:0;background:#000;color:#fff}
+    #app{height:100%;width:100%;display:flex;align-items:center;justify-content:center}
+    .spread{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;height:100%;padding:8px;box-sizing:border-box}
+    .page{width:100%;height:100%;object-fit:contain;background:#000}
+    .hint{position:fixed;left:0;right:0;bottom:16px;text-align:center;opacity:.7;font:12px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .hint>span{background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px}
+  </style>
+</head>
+<body>
+  <div id="app" role="button" aria-label="Advance page" tabindex="0">
+    <div class="spread">
+      <img id="left" class="page" draggable="false" alt="p1">
+      <img id="right" class="page" draggable="false" alt="p2">
+    </div>
+  </div>
+  <div id="hint" class="hint"><span>화면을 클릭/탭하면 다음 장으로 넘어갑니다</span></div>
+
+  <!-- 같은 폴더에 bgm.mp3 파일을 넣어주세요 -->
+  <audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+
+  <script>
+    const IMAGES = [
+        "https://i.imgur.com/iOzNhrh.png", 
+      "https://i.imgur.com/3Jh2vav.png",
+      "https://i.imgur.com/mvoYqtZ.png",
+      "https://i.imgur.com/wolfeVL.png",
+      "https://i.imgur.com/tHaxwOH.png",
+      "https://i.imgur.com/YbAPNES.png",
+      "https://i.imgur.com/111CXWA.png",
+      "https://i.imgur.com/9YiYFBb.png",
+      "https://i.imgur.com/ASVsRQN.png",
+      "https://i.imgur.com/dDoUApk.png",
+    "https://i.imgur.com/JRTEC8w.png"
+    ];
+
+    const spreads = [];
+    for (let i=0;i<IMAGES.length;i+=2) spreads.push(IMAGES.slice(i,i+2));
+
+    let idx=0, armed=false;
+    const left  = document.getElementById('left');
+    const right = document.getElementById('right');
+    const app   = document.getElementById('app');
+    const hint  = document.getElementById('hint');
+    const bgm   = document.getElementById('bgm');
+
+    function render(){
+      const pair = spreads[idx];
+      left.src  = pair[0] || "";
+      right.src = pair[1] || "";
+      left.alt  = `p${idx*2+1}`;
+      right.alt = `p${idx*2+2}`;
+      // 다음 장 프리로드
+      const next = spreads[(idx+1)%spreads.length];
+      next.forEach(s => { const im=new Image(); im.src=s; });
+    }
+
+    async function startBGM(){ try{ await bgm.play(); }catch(e){} }
+    function advance(){ idx=(idx+1)%spreads.length; render(); }
+    function onFirst(){ if(!armed){ armed=true; if(hint) hint.style.display='none'; startBGM(); } }
+
+    app.addEventListener('click',     ()=>{ onFirst(); advance(); });
+    app.addEventListener('touchend',  ()=>{ onFirst(); advance(); }, {passive:true});
+    document.addEventListener('keydown', (e)=>{
+      if (e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){ onFirst(); advance(); }
+      else if (e.key==='ArrowLeft'||e.key==='Backspace'){ idx=(idx-1+spreads.length)%spreads.length; render(); }
+    });
+
+    render();
+  </script>
+</body>
+</html>
